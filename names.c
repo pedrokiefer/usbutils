@@ -53,55 +53,54 @@
 
 #include "names.h"
 
-
 /* ---------------------------------------------------------------------- */
 
 struct vendor {
 	struct vendor *next;
 	u_int16_t vendorid;
-	char name[1];
+	char *name;
 };
 
 struct product {
 	struct product *next;
 	u_int16_t vendorid, productid;
-	char name[1];
+	char *name;
 };
 
 struct class {
 	struct class *next;
 	u_int8_t classid;
-	char name[1];
+	char *name;
 };
 
 struct subclass {
 	struct subclass *next;
 	u_int8_t classid, subclassid;
-	char name[1];
+	char *name;
 };
 
 struct protocol {
 	struct protocol *next;
 	u_int8_t classid, subclassid, protocolid;
-	char name[1];
+	char *name;
 };
 
 struct audioterminal {
 	struct audioterminal *next;
 	u_int16_t termt;
-	char name[1];
+	char *name;
 };
 
 struct videoterminal {
 	struct videoterminal *next;
 	u_int16_t termt;
-	char name[1];
+	char *name;
 };
 
 struct genericstrtable {
 	struct genericstrtable *next;
 	unsigned int num;
-	char name[1];
+	char *name;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -279,10 +278,16 @@ static int new_vendor(const char *name, u_int16_t vendorid)
 	for (; v; v = v->next)
 		if (v->vendorid == vendorid)
 			return -1;
-	v = malloc(sizeof(struct vendor) + strlen(name));
+	v = malloc(sizeof(struct vendor));
 	if (!v)
 		return -1;
-	strcpy(v->name, name);
+	v->name = malloc (sizeof(char) * (strlen(name) + 1));
+	if (!v->name) {
+		free (v);
+		return -1;
+	}
+	strncpy(v->name, name, strlen(name));
+	v->name[strlen(name)] = '\0';
 	v->vendorid = vendorid;
 	v->next = vendors[h];
 	vendors[h] = v;
@@ -298,10 +303,16 @@ static int new_product(const char *name, u_int16_t vendorid, u_int16_t productid
 	for (; p; p = p->next)
 		if (p->vendorid == vendorid && p->productid == productid)
 			return -1;
-	p = malloc(sizeof(struct product) + strlen(name));
+	p = malloc(sizeof(struct product));
 	if (!p)
 		return -1;
-	strcpy(p->name, name);
+	p->name = malloc (sizeof(char) * (strlen(name) + 1));
+	if (!p->name) {
+		free (p);
+		return -1;
+	}
+	strncpy(p->name, name, strlen(name));
+	p->name[strlen(name)] = '\0';
 	p->vendorid = vendorid;
 	p->productid = productid;
 	p->next = products[h];
@@ -318,10 +329,16 @@ static int new_class(const char *name, u_int8_t classid)
 	for (; c; c = c->next)
 		if (c->classid == classid)
 			return -1;
-	c = malloc(sizeof(struct class) + strlen(name));
+	c = malloc(sizeof(struct class));
 	if (!c)
 		return -1;
-	strcpy(c->name, name);
+	c->name = malloc (sizeof(char) * (strlen(name) + 1));
+	if (!c->name) {
+		free (c);
+		return -1;
+	}
+	strncpy(c->name, name, strlen(name));
+	c->name[strlen(name)] = '\0';
 	c->classid = classid;
 	c->next = classes[h];
 	classes[h] = c;
@@ -337,10 +354,16 @@ static int new_subclass(const char *name, u_int8_t classid, u_int8_t subclassid)
 	for (; s; s = s->next)
 		if (s->classid == classid && s->subclassid == subclassid)
 			return -1;
-	s = malloc(sizeof(struct subclass) + strlen(name));
+	s = malloc(sizeof(struct subclass));
 	if (!s)
 		return -1;
-	strcpy(s->name, name);
+	s->name = malloc (sizeof(char) * (strlen(name) + 1));
+	if (!s->name) {
+		free (s);
+		return -1;
+	}
+	strncpy(s->name, name, strlen(name));
+	s->name[strlen(name)] = '\0';
 	s->classid = classid;
 	s->subclassid = subclassid;
 	s->next = subclasses[h];
@@ -357,10 +380,16 @@ static int new_protocol(const char *name, u_int8_t classid, u_int8_t subclassid,
 	for (; p; p = p->next)
 		if (p->classid == classid && p->subclassid == subclassid && p->protocolid == protocolid)
 			return -1;
-	p = malloc(sizeof(struct protocol) + strlen(name));
+	p = malloc(sizeof(struct protocol));
 	if (!p)
 		return -1;
-	strcpy(p->name, name);
+	p->name = malloc (sizeof(char) * (strlen(name) + 1));
+	if (!p->name) {
+		free (p);
+		return -1;
+	}
+	strncpy(p->name, name, strlen(name));
+	p->name[strlen(name)] = '\0';
 	p->classid = classid;
 	p->subclassid = subclassid;
 	p->protocolid = protocolid;
@@ -378,10 +407,16 @@ static int new_audioterminal(const char *name, u_int16_t termt)
 	for (; at; at = at->next)
 		if (at->termt == termt)
 			return -1;
-	at = malloc(sizeof(struct audioterminal) + strlen(name));
+	at = malloc(sizeof(struct audioterminal));
 	if (!at)
 		return -1;
-	strcpy(at->name, name);
+	at->name = malloc (sizeof(char) * (strlen(name) + 1));
+	if (!at->name) {
+		free (at);
+		return -1;
+	}
+	strncpy(at->name, name, strlen(name));
+	at->name[strlen(name)] = '\0';
 	at->termt = termt;
 	at->next = audioterminals[h];
 	audioterminals[h] = at;
@@ -397,10 +432,16 @@ static int new_videoterminal(const char *name, u_int16_t termt)
 	for (; vt; vt = vt->next)
 		if (vt->termt == termt)
 			return -1;
-	vt = malloc(sizeof(struct videoterminal) + strlen(name));
+	vt = malloc(sizeof(struct videoterminal));
 	if (!vt)
 		return -1;
-	strcpy(vt->name, name);
+	vt->name = malloc (sizeof(char) * (strlen(name) + 1));
+	if (!vt->name) {
+		free (vt);
+		return -1;
+	}
+	strncpy(vt->name, name, strlen(name));
+	vt->name[strlen(name)] = '\0';
 	vt->termt = termt;
 	vt->next = videoterminals[h];
 	videoterminals[h] = vt;
@@ -416,10 +457,16 @@ static int new_genericstrtable(struct genericstrtable *t[HASHSZ],
 	for (g = t[h]; g; g = g->next)
 		if (g->num == idx)
 			return -1;
-	g = malloc(sizeof(struct genericstrtable) + strlen(name));
+	g = malloc(sizeof(struct genericstrtable));
 	if (!g)
 		return -1;
-	strcpy(g->name, name);
+	g->name = malloc (sizeof(char) * (strlen(name) + 1));
+	if (!g->name) {
+		free (g);
+		return -1;
+	}
+	strncpy(g->name, name, strlen(name));
+	g->name[strlen(name)] = '\0';
 	g->num = idx;
 	g->next = t[h];
 	t[h] = g;
@@ -467,7 +514,166 @@ static int new_countrycode(const char *name, unsigned int countrycode)
 
 /* ---------------------------------------------------------------------- */
 
-#define DBG(x)
+static void free_vendor(void)
+{
+	struct vendor *cur, *tmp;
+	int i;
+
+	for (i = 0; i < HASHSZ; i++) {
+		cur = vendors[i];
+		while (cur) {
+			tmp = cur;
+			cur = cur->next;
+			free(tmp->name);
+			free(tmp);
+		}
+	}
+
+	return;
+}
+
+static void free_product(void)
+{
+	struct product *cur, *tmp;
+	int i;
+
+	for (i = 0; i < HASHSZ; i++) {
+		cur = products[i];
+		while (cur) {
+			tmp = cur;
+			cur = cur->next;
+			free(tmp->name);
+			free(tmp);
+		}
+	}
+
+	return;
+}
+
+static void free_class(void)
+{
+	struct class *cur, *tmp;
+	int i;
+
+	for (i = 0; i < HASHSZ; i++) {
+		cur = classes[i];
+		while (cur) {
+			tmp = cur;
+			cur = cur->next;
+			free(tmp->name);
+			free(tmp);
+		}
+	}
+
+	return;
+}
+
+static void free_subclass(void)
+{
+	struct subclass *cur, *tmp;
+	int i;
+
+	for (i = 0; i < HASHSZ; i++) {
+		cur = subclasses[i];
+		while (cur) {
+			tmp = cur;
+			cur = cur->next;
+			free(tmp->name);
+			free(tmp);
+		}
+	}
+
+	return;
+}
+
+static void free_protocol(void)
+{
+	struct protocol *cur, *tmp;
+	int i;
+
+	for (i = 0; i < HASHSZ; i++) {
+		cur = protocols[i];
+		while (cur) {
+			tmp = cur;
+			cur = cur->next;
+			free(tmp->name);
+			free(tmp);
+		}
+	}
+
+	return;
+}
+
+static void free_audioterminal(void)
+{
+	struct audioterminal *cur, *tmp;
+	int i;
+
+	for (i = 0; i < HASHSZ; i++) {
+		cur = audioterminals[i];
+		while (cur) {
+			tmp = cur;
+			cur = cur->next;
+			free(tmp->name);
+			free(tmp);
+		}
+	}
+
+	return;
+}
+
+static void free_videoterminal(void)
+{
+	struct videoterminal *cur, *tmp;
+	int i;
+
+	for (i = 0; i < HASHSZ; i++) {
+		cur = videoterminals[i];
+		while (cur) {
+			tmp = cur;
+			cur = cur->next;
+			free(tmp->name);
+			free(tmp);
+		}
+	}
+
+	return;
+}
+
+static void _free_genericstrtable(struct genericstrtable *t[HASHSZ])
+{
+	struct genericstrtable *cur, *tmp;
+	int i;
+
+	for (i = 0; i < HASHSZ; i++) {
+		cur = t[i];
+		while (cur) {
+			tmp = cur;
+			cur = cur->next;
+			free(tmp->name);
+			free(tmp);
+		}
+	}
+	return;
+}
+
+static void free_genericstrtable(void)
+{
+	_free_genericstrtable(hiddescriptors);
+	_free_genericstrtable(reports);
+	_free_genericstrtable(huts);
+	_free_genericstrtable(biass);
+	_free_genericstrtable(physdess);
+	_free_genericstrtable(hutus);
+	_free_genericstrtable(langids);
+	_free_genericstrtable(countrycodes);
+
+	return;
+}
+
+/* ---------------------------------------------------------------------- */
+
+#define DBG(x) 
 
 static void parse(usb_file f)
 {
@@ -814,5 +1020,18 @@ int names_init(char *n)
 
 	parse(f);
 	usb_close(f);
+	return 0;
+}
+int names_free (void)
+{
+	free_vendor();
+	free_product();
+	free_class();
+	free_subclass();
+	free_protocol();
+	free_audioterminal();
+	free_videoterminal();
+	free_genericstrtable();
+
 	return 0;
 }

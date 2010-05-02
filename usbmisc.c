@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -118,24 +119,37 @@ static char *get_absolute_path(const char *path, char *result,
 	return result;
 }
 
-struct usb_device *get_usb_device(const char *path)
+struct libusb_device *get_usb_device(const char *path)
 {
-	struct usb_bus *bus;
-	struct usb_device *dev;
+	struct libusb_device **list;
+	struct libusb_device *found = NULL;
+	ssize_t cnt = libusb_get_device_list(NULL, &list);
+	ssize_t i = 0;
+	int bus, dev;
 	char device_path[PATH_MAX + 1];
 	char absolute_path[PATH_MAX + 1];
 
+	if (cnt < 0)
+		perror ("Can't get device list\n");
+
 	readlink_recursive(path, device_path, sizeof(device_path));
 	get_absolute_path(device_path, absolute_path, sizeof(absolute_path));
+	
+	for (i = 0; i < cnt; i++) {
+		libusb_device *device = list[i];
+		
+		bus = libusb_get_bus_number(device);
+		dev = libusb_get_device_address(device);
 
-	for (bus = usb_busses; bus; bus = bus->next) {
-		for (dev = bus->devices; dev; dev = dev->next) {
-			snprintf(device_path, sizeof(device_path), "%s/%s/%s",
-				 devbususb, bus->dirname, dev->filename);
-			if (!strcmp(device_path, absolute_path))
-				return dev;
+		snprintf(device_path, sizeof(device_path), "%s/%d/%d", devbususb, bus, dev);
+		if (!strcmp(device_path, absolute_path)) {
+			found = device;
+			break;
 		}
 	}
-	return NULL;
-}
+
+	libusb_free_device_list(list, 1);
+
+	return found;
+}	
 
